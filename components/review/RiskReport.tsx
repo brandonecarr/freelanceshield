@@ -1,11 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Review, Clause, FREE_CLAUSE_LIMIT } from '@/lib/types'
 import { ClauseCard } from './ClauseCard'
 import { RiskScoreRing } from './RiskScoreRing'
 import { canAccessFullReport, formatDate } from '@/lib/utils'
-import { Lock, AlertTriangle, FileText } from 'lucide-react'
+import { Lock, AlertTriangle, FileText, Share2, Check } from 'lucide-react'
 
 interface RiskReportProps {
   review: Review & { clauses: Clause[] }
@@ -13,11 +14,22 @@ interface RiskReportProps {
 }
 
 export function RiskReport({ review, plan }: RiskReportProps) {
+  const [shareCopied, setShareCopied] = useState(false)
+
   const isFullAccess = canAccessFullReport(plan)
+  const isPro = plan === 'pro' || plan === 'agency'
   const clauses = review.clauses || []
   const visibleClauses = isFullAccess ? clauses : clauses.slice(0, FREE_CLAUSE_LIMIT)
   const hiddenCount = isFullAccess ? 0 : Math.max(0, clauses.length - FREE_CLAUSE_LIMIT)
   const highRiskCount = clauses.filter((c) => c.risk_level === 'high').length
+
+  async function handleShare() {
+    if (!review.share_token) return
+    const url = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/share/${review.share_token}`
+    await navigator.clipboard.writeText(url)
+    setShareCopied(true)
+    setTimeout(() => setShareCopied(false), 2500)
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -47,11 +59,29 @@ export function RiskReport({ review, plan }: RiskReportProps) {
           </div>
         </div>
 
-        {/* Legal disclaimer */}
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        {/* Share button + Legal disclaimer */}
+        <div className="mt-4 pt-4 border-t border-gray-100 flex items-start justify-between gap-4">
           <p className="text-xs text-gray-500" style={{ fontSize: '12px' }}>
             FreelanceShield is a software tool that explains contract language. It is not a law firm and does not provide legal advice. Nothing in this analysis creates an attorney-client relationship. For contracts involving significant financial value or complex legal issues, consult a licensed attorney.
           </p>
+          {review.share_token && (
+            <button
+              onClick={handleShare}
+              className="flex-shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors"
+            >
+              {shareCopied ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-green-600" />
+                  <span className="text-green-700">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="h-3.5 w-3.5" />
+                  Share
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -79,7 +109,9 @@ export function RiskReport({ review, plan }: RiskReportProps) {
           <ClauseCard
             key={clause.id}
             clause={clause}
+            reviewId={review.id}
             showSuggestedEdit={isFullAccess}
+            showNegotiationCoaching={isPro}
           />
         ))}
 
@@ -142,7 +174,6 @@ export function RiskReport({ review, plan }: RiskReportProps) {
               <button
                 className="bg-yellow-400 text-gray-900 px-5 py-2 rounded-lg font-medium text-sm hover:bg-yellow-300 transition-colors"
                 onClick={() => {
-                  // Phase 3 feature — collect interest
                   alert('Attorney review coming soon! We\'ll notify you when this feature launches.')
                 }}
               >

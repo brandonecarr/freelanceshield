@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { PostHogProvider } from '@/components/PostHogProvider'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -40,11 +41,13 @@ export default async function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className={`${inter.className} h-full flex flex-col`}>
-        <Navbar user={user} isAdmin={isAdmin} />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <PostHogProvider>
+          <Navbar user={user} isAdmin={isAdmin} />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </PostHogProvider>
       </body>
     </html>
   )

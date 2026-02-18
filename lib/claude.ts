@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { AnalysisResult } from './types'
+import { AnalysisResult, NegotiationCoaching } from './types'
 import { preprocessContractText } from './utils'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -108,4 +108,90 @@ export async function analyzeContract(
       `Failed to parse Claude response: ${cleaned.slice(0, 200)}`
     )
   }
+}
+
+export async function generateNegotiationCoaching(
+  clauseType: string,
+  originalText: string,
+  specificConcern: string,
+  freelancerType: string,
+  usState: string
+): Promise<NegotiationCoaching> {
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    system: `You are a negotiation coach for freelancers. Help the freelancer negotiate a specific problematic contract clause.
+The freelancer is a ${freelancerType} based in ${usState}.
+
+Return ONLY valid JSON — no preamble, no markdown — with this exact structure:
+{
+  "talking_points": ["...", "..."],
+  "your_position": "...",
+  "their_likely_response": "...",
+  "counter_argument": "...",
+  "opening_script": "..."
+}
+
+- talking_points: 2-4 specific, factual points the freelancer can make about why this clause is unfair
+- your_position: a clear, one-sentence statement of what to ask for instead
+- their_likely_response: what the client will likely say when pushed back on (1-2 sentences)
+- counter_argument: how to respond to the client's likely pushback (1-2 sentences)
+- opening_script: the exact words the freelancer can say or email to open the negotiation. First person, professional but assertive. 2-4 sentences.`,
+    messages: [
+      {
+        role: 'user',
+        content: `Clause type: ${clauseType}\n\nOriginal contract language: "${originalText}"\n\nWhy this is a problem: ${specificConcern}\n\nHelp me negotiate this clause.`,
+      },
+    ],
+  })
+
+  const rawText = response.content[0].type === 'text' ? response.content[0].text : ''
+  const cleaned = rawText.replace(/```json\n?|\n?```/g, '').trim()
+
+  try {
+    return JSON.parse(cleaned) as NegotiationCoaching
+  } catch {
+    throw new Error(`Failed to parse negotiation coaching: ${cleaned.slice(0, 200)}`)
+  }
+}
+
+export async function generateDemandLetter(params: {
+  clientName: string
+  projectName: string
+  amountOwed: number
+  paymentDueDate: string
+  projectDescription: string
+  freelancerName: string
+  usState: string
+  pastDueDays: number
+}): Promise<string> {
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    system: `You are a professional letter writer helping a freelancer draft a payment demand letter. Write a firm, professional, and legally assertive letter that:
+- Clearly states the amount owed and the basis for it
+- References the completed work and project
+- Sets a firm payment deadline (7 business days from today)
+- States consequences of non-payment (small claims court, collections, credit reporting)
+- Is professional but leaves zero ambiguity about seriousness
+- Is appropriate for the freelancer's US state
+
+Return ONLY the letter text — no JSON, no markdown, no explanation. Start with the date line.`,
+    messages: [
+      {
+        role: 'user',
+        content: `Write a payment demand letter with these details:
+- My name (freelancer): ${params.freelancerName}
+- Client name: ${params.clientName}
+- Project name: ${params.projectName}
+- Project description: ${params.projectDescription}
+- Amount owed: $${params.amountOwed}
+- Original payment due date: ${params.paymentDueDate}
+- Days past due: ${params.pastDueDays}
+- My state: ${params.usState}`,
+      },
+    ],
+  })
+
+  return response.content[0].type === 'text' ? response.content[0].text : ''
 }

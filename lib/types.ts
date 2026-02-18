@@ -29,8 +29,17 @@ export interface Review {
   risk_summary: string | null
   status: ReviewStatus
   error_message: string | null
+  share_token: string | null
   created_at: string
   clauses?: Clause[]
+}
+
+export interface NegotiationCoaching {
+  talking_points: string[]
+  your_position: string
+  their_likely_response: string
+  counter_argument: string
+  opening_script: string
 }
 
 export interface Clause {

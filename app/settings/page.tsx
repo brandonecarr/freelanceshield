@@ -241,16 +241,32 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            <div className="border border-gray-200 rounded-xl p-4">
-              <div className="flex items-center justify-between">
+            <div className="border border-gray-200 rounded-xl p-5">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-semibold text-gray-900">
-                    Pro — $59/month
-                    <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Coming soon</span>
+                  <p className="font-bold text-gray-900">
+                    Pro
+                    <span className="ml-2 text-gray-600 font-normal">$59/month</span>
                   </p>
-                  <p className="text-sm text-gray-500 mt-0.5">Everything in Solo + negotiation coaching, redline comparison, demand letters</p>
+                  <p className="text-sm text-gray-600 mt-1">Everything in Solo + negotiation coaching + payment demand letters</p>
+                  <ul className="mt-3 space-y-1.5">
+                    {['AI negotiation coaching per clause', 'Payment demand letter generator', '10 contract templates'].map((f) => (
+                      <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
+              <button
+                onClick={() => handleUpgrade('pro')}
+                disabled={upgrading}
+                className="mt-4 w-full flex items-center justify-center gap-2 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                {upgrading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {upgrading ? 'Redirecting...' : 'Upgrade to Pro — $59/month'}
+              </button>
             </div>
           </div>
         )}

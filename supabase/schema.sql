@@ -28,6 +28,7 @@ create table public.reviews (
   risk_summary text,
   status text default 'pending' check (status in ('pending', 'processing', 'complete', 'error')),
   error_message text,
+  share_token uuid default gen_random_uuid() unique not null,
   created_at timestamptz default now()
 );
 
@@ -145,5 +146,6 @@ create trigger on_auth_user_created
 -- Indexes for performance
 create index reviews_user_id_idx on public.reviews(user_id);
 create index reviews_created_at_idx on public.reviews(created_at desc);
+create index reviews_share_token_idx on public.reviews(share_token);
 create index clauses_review_id_idx on public.clauses(review_id);
 create index clauses_risk_level_idx on public.clauses(risk_level);

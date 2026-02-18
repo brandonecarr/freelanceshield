@@ -41,15 +41,13 @@ const PRICING_PLANS = [
     description: 'For power negotiators',
     features: [
       'Everything in Solo',
-      'Negotiation coaching',
-      'Clause comparison on redlines',
+      'AI negotiation coaching',
       'Payment demand letters',
       '10 contract templates',
     ],
-    cta: 'Coming soon',
-    href: '#',
+    cta: 'Start Pro plan',
+    href: '/auth/signup',
     highlighted: false,
-    comingSoon: true,
   },
 ]
 
@@ -254,11 +252,9 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Link
-                  href={plan.comingSoon ? '#' : plan.href}
+                  href={plan.href}
                   className={`block text-center py-2.5 px-4 rounded-xl font-medium text-sm transition-colors ${
-                    plan.comingSoon
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : plan.highlighted
+                    plan.highlighted
                       ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
