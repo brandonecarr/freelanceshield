@@ -1,19 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createBrowserSupabaseClient } from '@/lib/supabase'
 import { FreelancerType, US_STATES, PLAN_LIMITS } from '@/lib/types'
 import { PLAN_DETAILS } from '@/lib/stripe'
 import { FreelancerTypeSelector } from '@/components/review/FreelancerTypeSelector'
-import { CheckCircle, CreditCard, User, Loader2 } from 'lucide-react'
+import { CheckCircle, CreditCard, User, Loader2, AlertTriangle, ExternalLink } from 'lucide-react'
 
 export default function SettingsPage() {
+  const router = useRouter()
   const supabase = createBrowserSupabaseClient()
   const [profile, setProfile] = useState<{
     email: string
     freelancer_type: FreelancerType | null
     us_state: string | null
     plan: string
+    stripe_customer_id: string | null
     reviews_used_this_month: number
   } | null>(null)
   const [freelancerType, setFreelancerType] = useState<FreelancerType | null>(null)
@@ -21,7 +24,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [upgrading, setUpgrading] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     async function loadProfile() {
@@ -73,6 +79,31 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleManageSubscription() {
+    setPortalLoading(true)
+    const response = await fetch('/api/stripe/create-portal', { method: 'POST' })
+    const data = await response.json()
+    if (data.url) {
+      window.location.href = data.url
+    } else {
+      setPortalLoading(false)
+      alert('Could not open billing portal. Please try again.')
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirm !== 'DELETE') return
+    setDeleting(true)
+    const response = await fetch('/api/user/delete', { method: 'DELETE' })
+    if (response.ok) {
+      await supabase.auth.signOut()
+      router.push('/?deleted=true')
+    } else {
+      setDeleting(false)
+      alert('Failed to delete account. Please try again or contact support.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -84,6 +115,7 @@ export default function SettingsPage() {
   const plan = profile?.plan || 'free'
   const planLimits = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] || PLAN_LIMITS.free
   const isUnlimited = planLimits.reviews_per_month === Infinity
+  const hasPaidPlan = ['solo', 'pro', 'agency'].includes(plan)
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -156,7 +188,7 @@ export default function SettingsPage() {
                   : `${profile?.reviews_used_this_month || 0} / ${planLimits.reviews_per_month} reviews used this month`}
               </p>
             </div>
-            {plan !== 'free' && (
+            {hasPaidPlan && (
               <span className="text-xs bg-green-100 text-green-800 px-2.5 py-1 rounded-full font-medium">
                 Active
               </span>
@@ -164,7 +196,19 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Upgrade options */}
+        {/* Paid plan — manage subscription via Stripe portal */}
+        {hasPaidPlan && (
+          <button
+            onClick={handleManageSubscription}
+            disabled={portalLoading}
+            className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+            {portalLoading ? 'Opening...' : 'Manage subscription & billing'}
+          </button>
+        )}
+
+        {/* Free plan — upgrade options */}
         {plan === 'free' && (
           <div className="space-y-4">
             <p className="text-sm font-medium text-gray-900">Upgrade your plan</p>
@@ -210,12 +254,40 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+      </section>
 
-        {plan !== 'free' && (
-          <p className="text-sm text-gray-500">
-            To manage your subscription, cancel, or update payment details, please contact support.
-          </p>
-        )}
+      {/* Danger Zone */}
+      <section className="bg-white border border-red-200 rounded-xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <AlertTriangle className="h-5 w-5 text-red-500" />
+          <h2 className="text-base font-semibold text-gray-900">Danger Zone</h2>
+        </div>
+        <p className="text-sm text-gray-600 mb-4">
+          Permanently delete your account and all associated data. This action cannot be undone.
+          {hasPaidPlan && ' Your active subscription will be cancelled immediately.'}
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Type <span className="font-mono font-bold">DELETE</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder="DELETE"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400"
+            />
+          </div>
+          <button
+            onClick={handleDeleteAccount}
+            disabled={deleteConfirm !== 'DELETE' || deleting}
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {deleting ? 'Deleting...' : 'Delete my account'}
+          </button>
+        </div>
       </section>
     </div>
   )
