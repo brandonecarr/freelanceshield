@@ -447,10 +447,14 @@ export async function GET(
     return NextResponse.json({ error: 'Template not found' }, { status: 404 })
   }
 
-  return new NextResponse(template.content, {
+  const { generateTemplatePDF } = await import('@/lib/pdf-generator')
+  const pdfBuffer = await generateTemplatePDF(template.name, template.content)
+  const slug = template.name.replace(/\s+/g, '-').toLowerCase()
+
+  return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Content-Disposition': `attachment; filename="${template.name.replace(/\s+/g, '-').toLowerCase()}.txt"`,
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${slug}.pdf"`,
     },
   })
 }
