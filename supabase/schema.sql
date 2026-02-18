@@ -8,6 +8,7 @@ create table public.profiles (
   freelancer_type text check (freelancer_type in ('developer', 'designer', 'marketer', 'creative', 'video', 'other')),
   us_state text,
   plan text default 'free' check (plan in ('free', 'solo', 'pro', 'agency')),
+  role text default 'user' check (role in ('user', 'admin')),
   stripe_customer_id text,
   stripe_subscription_id text,
   reviews_used_this_month integer default 0,
