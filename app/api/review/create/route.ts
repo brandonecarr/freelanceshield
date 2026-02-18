@@ -90,42 +90,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'File too large. Maximum size is 10MB.' }, { status: 413 })
   }
 
-  // 4. Call the PDF microservice to extract text
-  const pdfServiceUrl = process.env.PDF_SERVICE_URL
-  if (!pdfServiceUrl) {
-    return NextResponse.json({ error: 'PDF service not configured' }, { status: 500 })
-  }
-
+  // 4. Extract text from the uploaded PDF using pdf-parse (runs server-side, no external service)
   let extractedText: string
   let pageCount: number
 
   try {
-    const pdfFormData = new FormData()
-    pdfFormData.append('file', file)
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const pdfParse = require('pdf-parse') as (b: Buffer) => Promise<{ text: string; numpages: number }>
+    const pdfData = await pdfParse(buffer)
+    extractedText = pdfData.text?.trim() || ''
+    pageCount = pdfData.numpages || 1
+    void pageCount // available for future use
 
-    const pdfResponse = await fetch(`${pdfServiceUrl}/extract`, {
-      method: 'POST',
-      body: pdfFormData,
-    })
-
-    const pdfData = await pdfResponse.json()
-
-    if (!pdfResponse.ok) {
-      const detail = pdfData.detail
-      const message = typeof detail === 'object' ? detail?.message : detail
+    if (!extractedText || extractedText.length < 50) {
       return NextResponse.json(
-        { error: message || 'Failed to extract text from PDF' },
+        {
+          error:
+            'Could not extract text from this PDF. Please ensure it is a text-based PDF and not a scanned image.',
+        },
         { status: 422 }
       )
     }
-
-    extractedText = pdfData.text
-    pageCount = pdfData.page_count
   } catch (err) {
-    console.error('[create-review] PDF service error:', err)
+    console.error('[create-review] PDF parse error:', err)
     return NextResponse.json(
-      { error: 'PDF extraction service is unavailable. Please try again.' },
-      { status: 503 }
+      { error: 'Failed to read the PDF file. Please ensure it is a valid, uncorrupted PDF.' },
+      { status: 422 }
     )
   }
 
