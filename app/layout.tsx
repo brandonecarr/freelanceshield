@@ -27,10 +27,20 @@ export default async function RootLayout({
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    isAdmin = profile?.role === 'admin'
+  }
+
   return (
     <html lang="en" className="h-full">
       <body className={`${inter.className} h-full flex flex-col`}>
-        <Navbar user={user} />
+        <Navbar user={user} isAdmin={isAdmin} />
         <main className="flex-1">
           {children}
         </main>

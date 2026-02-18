@@ -4,13 +4,14 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createBrowserSupabaseClient } from '@/lib/supabase'
-import { Shield, Menu, X, LogOut, Settings, LayoutDashboard, FileText } from 'lucide-react'
+import { Shield, Menu, X, LogOut, Settings, LayoutDashboard, FileText, ShieldCheck } from 'lucide-react'
 
 interface NavbarProps {
   user?: { email?: string } | null
+  isAdmin?: boolean
 }
 
-export function Navbar({ user }: NavbarProps) {
+export function Navbar({ user, isAdmin }: NavbarProps) {
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const supabase = createBrowserSupabaseClient()
@@ -35,6 +36,12 @@ export function Navbar({ user }: NavbarProps) {
           <nav className="hidden md:flex items-center gap-6">
             {user ? (
               <>
+                {isAdmin && (
+                  <Link href="/admin" className="text-sm text-purple-700 font-medium hover:text-purple-900 flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4" />
+                    Admin
+                  </Link>
+                )}
                 <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1.5">
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
@@ -90,6 +97,11 @@ export function Navbar({ user }: NavbarProps) {
           <div className="md:hidden py-4 border-t border-gray-100 space-y-2">
             {user ? (
               <>
+                {isAdmin && (
+                  <Link href="/admin" className="flex items-center gap-2 py-2 text-sm text-purple-700 font-medium" onClick={() => setMobileOpen(false)}>
+                    <ShieldCheck className="h-4 w-4" /> Admin
+                  </Link>
+                )}
                 <Link href="/dashboard" className="flex items-center gap-2 py-2 text-sm text-gray-700" onClick={() => setMobileOpen(false)}>
                   <LayoutDashboard className="h-4 w-4" /> Dashboard
                 </Link>

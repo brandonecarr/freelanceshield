@@ -2,6 +2,7 @@ export type FreelancerType = 'developer' | 'designer' | 'marketer' | 'creative' 
 export type Plan = 'free' | 'solo' | 'pro' | 'agency'
 export type RiskLevel = 'low' | 'medium' | 'high'
 export type ReviewStatus = 'pending' | 'processing' | 'complete' | 'error'
+export type UserRole = 'user' | 'admin'
 
 export interface Profile {
   id: string
@@ -9,6 +10,7 @@ export interface Profile {
   freelancer_type: FreelancerType | null
   us_state: string | null
   plan: Plan
+  role: UserRole
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
   reviews_used_this_month: number

@@ -137,7 +137,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------
 -- 3. Upsert profiles (the trigger normally handles this, but we
---    set plan, freelancer_type, and us_state explicitly here)
+--    set plan, freelancer_type, us_state, and role explicitly here)
 -- ----------------------------------------------------------------
 INSERT INTO public.profiles (
   id,
@@ -145,6 +145,7 @@ INSERT INTO public.profiles (
   freelancer_type,
   us_state,
   plan,
+  role,
   reviews_used_this_month,
   reviews_reset_date,
   created_at
@@ -156,6 +157,7 @@ VALUES
     'developer',
     'california',
     'solo',
+    'admin',
     0,
     now(),
     now()
@@ -166,6 +168,7 @@ VALUES
     'developer',
     'california',
     'solo',
+    'user',
     0,
     now(),
     now()
@@ -176,6 +179,7 @@ VALUES
     'designer',
     'new_york',
     'free',
+    'user',
     0,
     now(),
     now()
@@ -186,6 +190,7 @@ VALUES
     'marketer',
     'texas',
     'free',
+    'user',
     0,
     now(),
     now()
@@ -194,4 +199,5 @@ ON CONFLICT (id) DO UPDATE SET
   email           = EXCLUDED.email,
   freelancer_type = EXCLUDED.freelancer_type,
   us_state        = EXCLUDED.us_state,
-  plan            = EXCLUDED.plan;
+  plan            = EXCLUDED.plan,
+  role            = EXCLUDED.role;

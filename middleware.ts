@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 const PROTECTED_ROUTES = ['/dashboard', '/review', '/templates', '/settings']
+const ADMIN_ROUTES = ['/admin']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Only protect specific routes
-  const isProtected = PROTECTED_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  )
+  const isAdminRoute = ADMIN_ROUTES.some((route) => pathname.startsWith(route))
+  const isProtected = isAdminRoute || PROTECTED_ROUTES.some((route) => pathname.startsWith(route))
 
   if (!isProtected) {
     return NextResponse.next()
@@ -46,6 +45,19 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL('/auth/login', request.url)
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // For admin routes, verify the user has admin role
+  if (isAdminRoute) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
   return response
