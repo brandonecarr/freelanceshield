@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { analyzeContract } from '@/lib/claude'
 import { PLAN_LIMITS } from '@/lib/types'
+import { sendAnalysisComplete } from '@/lib/resend'
 
 const MAX_REQUESTS_PER_HOUR = 10
 
@@ -230,6 +231,13 @@ export async function POST(request: NextRequest) {
     })
     .eq('id', user.id)
 
-  // 10. Return the review ID to the frontend
+  // 10. Send analysis complete email (fire and forget — never block the response)
+  if (profile.email) {
+    sendAnalysisComplete(profile.email, review.id, analysisResult.overall_risk_score).catch((err) =>
+      console.error('[create-review] Failed to send analysis email:', err)
+    )
+  }
+
+  // 11. Return the review ID to the frontend
   return NextResponse.json({ review_id: review.id })
 }

@@ -10,7 +10,6 @@ const TEMPLATES = [
     description: 'A comprehensive general-purpose service agreement for any freelance work. Balanced and freelancer-protective.',
     freelancer_type: null,
     tags: ['General', 'Services'],
-    plan_required: 'solo',
   },
   {
     id: 'nda-mutual',
@@ -18,7 +17,6 @@ const TEMPLATES = [
     description: 'A mutual non-disclosure agreement that protects both parties. Includes carve-outs for publicly known information.',
     freelancer_type: null,
     tags: ['NDA', 'General'],
-    plan_required: 'solo',
   },
   {
     id: 'web-development-contract',
@@ -26,7 +24,6 @@ const TEMPLATES = [
     description: 'Tailored for developers. Includes IP ownership with carve-outs for pre-existing code, milestone payments, and scope change order process.',
     freelancer_type: 'developer',
     tags: ['Developer', 'Web'],
-    plan_required: 'solo',
   },
   {
     id: 'design-services-contract',
@@ -34,7 +31,6 @@ const TEMPLATES = [
     description: 'Built for designers. Limits revisions explicitly, protects unused concepts, and defines deliverable formats precisely.',
     freelancer_type: 'designer',
     tags: ['Designer', 'Creative'],
-    plan_required: 'solo',
   },
   {
     id: 'video-production-agreement',
@@ -42,7 +38,6 @@ const TEMPLATES = [
     description: 'For video producers and editors. Distinguishes licensing from ownership, defines usage rights clearly.',
     freelancer_type: 'video',
     tags: ['Video', 'Creative'],
-    plan_required: 'solo',
   },
 ]
 
@@ -106,10 +101,14 @@ export default async function TemplatesPage() {
               {template.description}
             </p>
             {hasAccess ? (
-              <button className="w-full flex items-center justify-center gap-2 border border-gray-300 text-gray-700 py-2 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors">
+              <a
+                href={`/api/templates/${template.id}/download`}
+                download
+                className="w-full flex items-center justify-center gap-2 border border-gray-300 text-gray-700 py-2 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
+              >
                 <Download className="h-3.5 w-3.5" />
                 Download template
-              </button>
+              </a>
             ) : (
               <button
                 className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-400 py-2 rounded-lg text-xs font-medium cursor-not-allowed"
