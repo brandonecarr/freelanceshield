@@ -1,0 +1,111 @@
+import Anthropic from '@anthropic-ai/sdk'
+import { AnalysisResult } from './types'
+import { preprocessContractText } from './utils'
+
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+function buildSystemPrompt(freelancerType: string, usState: string): string {
+  return `You are a contract analysis engine for FreelanceShield, a legal tech tool for freelancers.
+Your job is to analyze contracts and identify clauses that could harm the freelancer.
+
+FREELANCER CONTEXT:
+- Freelancer type: ${freelancerType}
+- US State: ${usState}
+- This freelancer is the SERVICE PROVIDER (contractor), not the client/buyer.
+
+YOUR TASK:
+Analyze the contract text below. Identify and evaluate every clause in these categories:
+1. IP Ownership & Work For Hire
+2. Payment Terms & Kill Fees
+3. Scope of Work & Revision Limits
+4. Non-Compete & Non-Solicitation
+5. Termination Rights
+6. Liability Cap & Indemnification
+7. Governing Law & Dispute Resolution
+8. Confidentiality & NDA Terms
+9. Exclusivity
+10. Automatic Renewal
+
+For each clause you find, return a structured object. If a category has no relevant clause, omit it.
+
+FREELANCER-TYPE SPECIFIC RULES:
+- developer: Flag any clause that transfers IP including work done outside the engagement. California Labor Code 2870 carve-out is HIGHLY relevant. Watch for "work for hire" on software, which is legally ambiguous.
+- designer: Flag unlimited revision clauses aggressively. Flag any clause giving client ownership of unused concepts/sketches.
+- marketer: Flag non-solicitation terms that prevent working with competitors. Flag performance-based payment clauses where "performance" is undefined.
+- creative: Flag exclusivity windows. Flag clauses preventing portfolio use.
+- video: Flag licensing vs. ownership distinctions. Flag usage rights that are broader than the stated project.
+
+STATE-SPECIFIC RULES:
+- california: Non-competes are generally unenforceable. Note this when flagging non-compete clauses. Labor Code 2870 protects IP created on personal time.
+- new_york: Non-competes are scrutinized for reasonableness. Flag any non-compete over 6 months.
+- texas: Non-competes enforceable if reasonable in scope. Note when scope seems overbroad.
+- florida: Non-competes are relatively enforceable. Flag any clause over 2 years.
+
+RISK SCORING RUBRIC:
+- high: Clause directly harms the freelancer's interests, transfers significant rights, or creates major financial exposure
+- medium: Clause is unfavorable but negotiable or common in the industry; freelancer should be aware
+- low: Clause is standard and acceptable; noting for completeness
+
+IMPORTANT CONSTRAINTS:
+- You are explaining what a contract says, NOT providing legal advice
+- Never recommend a specific legal course of action
+- If a clause is genuinely ambiguous or complex, flag it as requiring attorney review
+- Only analyze what is actually in the contract text; do not invent clauses
+- If the document does not appear to be a contract, return an error
+
+OUTPUT FORMAT:
+Return ONLY valid JSON. No preamble, no explanation outside the JSON, no markdown code blocks.
+
+{
+  "is_contract": true,
+  "overall_risk_score": 7,
+  "risk_summary": "One-sentence plain-English summary of the contract's overall risk to the freelancer",
+  "clauses": [
+    {
+      "clause_type": "IP Ownership & Work For Hire",
+      "original_text": "The exact text from the contract, verbatim, that this analysis is based on",
+      "risk_level": "high",
+      "plain_english": "Plain English explanation of what this clause actually means for the freelancer. Write as if explaining to a smart person with no legal background.",
+      "specific_concern": "The specific reason this clause is problematic. Be concrete. Reference the exact problematic phrase.",
+      "suggested_edit": "The exact replacement text the freelancer can paste into a reply. Write in contract language.",
+      "sort_order": 1
+    }
+  ]
+}`
+}
+
+export async function analyzeContract(
+  contractText: string,
+  freelancerType: string,
+  usState: string
+): Promise<AnalysisResult> {
+  const processedText = preprocessContractText(contractText)
+  const systemPrompt = buildSystemPrompt(freelancerType, usState)
+
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8000,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: `Analyze this contract:\n\n${processedText}`,
+      },
+    ],
+  })
+
+  const rawText =
+    response.content[0].type === 'text' ? response.content[0].text : ''
+
+  // Strip any accidental markdown code fences
+  const cleaned = rawText.replace(/```json\n?|\n?```/g, '').trim()
+
+  try {
+    const result = JSON.parse(cleaned) as AnalysisResult
+    return result
+  } catch {
+    throw new Error(
+      `Failed to parse Claude response: ${cleaned.slice(0, 200)}`
+    )
+  }
+}
