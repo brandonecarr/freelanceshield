@@ -90,17 +90,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'File too large. Maximum size is 10MB.' }, { status: 413 })
   }
 
-  // 4. Extract text from the uploaded PDF using pdf-parse (runs server-side, no external service)
+  // 4. Extract text from the uploaded PDF using unpdf (serverless-compatible, no canvas dependency)
   let extractedText: string
   let pageCount: number
 
   try {
     const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (b: Buffer, options?: object) => Promise<{ text: string; numpages: number }>
-    const pdfData = await pdfParse(buffer)
-    extractedText = pdfData.text?.trim() || ''
-    pageCount = pdfData.numpages || 1
+    const { extractText } = await import('unpdf')
+    const { text, totalPages } = await extractText(new Uint8Array(arrayBuffer), { mergePages: true })
+    extractedText = (Array.isArray(text) ? text.join('\n') : (text as string)).trim()
+    pageCount = totalPages
     void pageCount // available for future use
 
     if (!extractedText || extractedText.length < 50) {
