@@ -143,7 +143,8 @@ export async function POST(request: NextRequest) {
   try {
     analysisResult = await analyzeContract(extractedText, freelancerType, usState)
   } catch (err) {
-    console.error('[create-review] Claude error:', err)
+    const errMsg = err instanceof Error ? err.message : String(err)
+    console.error('[create-review] Claude error:', errMsg)
 
     await serviceClient
       .from('reviews')
@@ -157,6 +158,7 @@ export async function POST(request: NextRequest) {
       {
         error: 'Analysis failed. Our AI service encountered an error. Please try again.',
         review_id: review.id,
+        debug: errMsg.slice(0, 300),
       },
       { status: 500 }
     )
