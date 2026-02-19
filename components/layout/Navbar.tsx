@@ -23,109 +23,111 @@ export function Navbar({ user, isAdmin }: NavbarProps) {
   }
 
   return (
-    <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-40 px-4 sm:px-6 py-3 bg-transparent">
+      {/* Floating pill */}
+      <div className="max-w-5xl mx-auto bg-[#171717] rounded-full shadow-xl">
+        <div className="flex h-12 items-center justify-between px-4 sm:px-6">
+
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-bold text-gray-900">
-            <Shield className="h-7 w-7 text-blue-600" />
-            <span className="text-lg">FreelanceShield</span>
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+            <Shield className="h-5 w-5 text-orange-500" />
+            <span className="text-sm font-semibold text-white">FreelanceShield</span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6">
+          {/* Desktop center links */}
+          <nav className="hidden md:flex items-center gap-1">
             {user ? (
               <>
                 {isAdmin && (
-                  <Link href="/admin" className="text-sm text-purple-700 font-medium hover:text-purple-900 flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4" />
-                    Admin
+                  <Link href="/admin" className="px-3 py-1.5 text-xs text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5" />Admin
                   </Link>
                 )}
-                <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1.5">
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
+                <Link href="/dashboard" className="px-3 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5">
+                  <LayoutDashboard className="h-3.5 w-3.5" />Dashboard
                 </Link>
-                <Link href="/templates" className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1.5">
-                  <FileText className="h-4 w-4" />
-                  Templates
+                <Link href="/templates" className="px-3 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5">
+                  <FileText className="h-3.5 w-3.5" />Templates
                 </Link>
-                <Link href="/settings" className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1.5">
-                  <Settings className="h-4 w-4" />
-                  Settings
+                <Link href="/settings" className="px-3 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5">
+                  <Settings className="h-3.5 w-3.5" />Settings
                 </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/#pricing" className="px-3 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors">Pricing</Link>
+                <Link href="/auth/login" className="px-3 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors">Login</Link>
+              </>
+            )}
+          </nav>
+
+          {/* Desktop right actions */}
+          <div className="hidden md:flex items-center gap-2">
+            {user ? (
+              <>
                 <Link
                   href="/review/new"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="px-4 py-1.5 rounded-full bg-orange-500 text-white text-xs font-medium hover:bg-orange-600 transition-colors"
                 >
                   Review Contract
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1.5"
+                  className="p-1.5 text-neutral-500 hover:text-neutral-300 transition-colors"
                 >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
+                  <LogOut className="h-3.5 w-3.5" />
                 </button>
               </>
             ) : (
-              <>
-                <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">
-                  Sign in
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Get started free
-                </Link>
-              </>
+              <Link
+                href="/auth/signup"
+                className="px-4 py-1.5 rounded-full bg-orange-500 text-white text-xs font-medium hover:bg-orange-600 transition-colors"
+              >
+                Try for free
+              </Link>
             )}
-          </nav>
+          </div>
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden text-gray-500 hover:text-gray-700"
+            className="md:hidden text-neutral-400 hover:text-white transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
-        {/* Mobile nav */}
+        {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 space-y-2">
+          <div className="md:hidden px-4 pb-4 border-t border-white/10 mt-1 pt-3 space-y-1">
             {user ? (
               <>
                 {isAdmin && (
-                  <Link href="/admin" className="flex items-center gap-2 py-2 text-sm text-purple-700 font-medium" onClick={() => setMobileOpen(false)}>
-                    <ShieldCheck className="h-4 w-4" /> Admin
+                  <Link href="/admin" className="flex items-center gap-2 py-2 text-xs text-purple-400" onClick={() => setMobileOpen(false)}>
+                    <ShieldCheck className="h-4 w-4" />Admin
                   </Link>
                 )}
-                <Link href="/dashboard" className="flex items-center gap-2 py-2 text-sm text-gray-700" onClick={() => setMobileOpen(false)}>
-                  <LayoutDashboard className="h-4 w-4" /> Dashboard
+                <Link href="/dashboard" className="flex items-center gap-2 py-2 text-xs text-neutral-300" onClick={() => setMobileOpen(false)}>
+                  <LayoutDashboard className="h-4 w-4" />Dashboard
                 </Link>
-                <Link href="/review/new" className="flex items-center gap-2 py-2 text-sm text-blue-600 font-medium" onClick={() => setMobileOpen(false)}>
+                <Link href="/review/new" className="flex items-center gap-2 py-2 text-xs text-orange-400 font-medium" onClick={() => setMobileOpen(false)}>
                   Review Contract
                 </Link>
-                <Link href="/templates" className="flex items-center gap-2 py-2 text-sm text-gray-700" onClick={() => setMobileOpen(false)}>
-                  <FileText className="h-4 w-4" /> Templates
+                <Link href="/templates" className="flex items-center gap-2 py-2 text-xs text-neutral-300" onClick={() => setMobileOpen(false)}>
+                  <FileText className="h-4 w-4" />Templates
                 </Link>
-                <Link href="/settings" className="flex items-center gap-2 py-2 text-sm text-gray-700" onClick={() => setMobileOpen(false)}>
-                  <Settings className="h-4 w-4" /> Settings
+                <Link href="/settings" className="flex items-center gap-2 py-2 text-xs text-neutral-300" onClick={() => setMobileOpen(false)}>
+                  <Settings className="h-4 w-4" />Settings
                 </Link>
-                <button onClick={handleSignOut} className="flex items-center gap-2 py-2 text-sm text-gray-500 w-full text-left">
-                  <LogOut className="h-4 w-4" /> Sign out
+                <button onClick={handleSignOut} className="flex items-center gap-2 py-2 text-xs text-neutral-500 w-full">
+                  <LogOut className="h-4 w-4" />Sign out
                 </button>
               </>
             ) : (
               <>
-                <Link href="/auth/login" className="block py-2 text-sm text-gray-700" onClick={() => setMobileOpen(false)}>
-                  Sign in
-                </Link>
-                <Link href="/auth/signup" className="block py-2 text-sm text-blue-600 font-medium" onClick={() => setMobileOpen(false)}>
-                  Get started free
-                </Link>
+                <Link href="/#pricing" className="block py-2 text-xs text-neutral-400" onClick={() => setMobileOpen(false)}>Pricing</Link>
+                <Link href="/auth/login" className="block py-2 text-xs text-neutral-400" onClick={() => setMobileOpen(false)}>Login</Link>
+                <Link href="/auth/signup" className="block py-2 text-xs text-orange-400 font-medium" onClick={() => setMobileOpen(false)}>Try for free</Link>
               </>
             )}
           </div>

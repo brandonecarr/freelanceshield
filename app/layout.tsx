@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Bricolage_Grotesque } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
@@ -7,6 +7,12 @@ import { PostHogProvider } from '@/components/PostHogProvider'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 const inter = Inter({ subsets: ['latin'] })
+const bricolage = Bricolage_Grotesque({
+  subsets: ['latin'],
+  variable: '--font-bricolage',
+  weight: ['300', '400', '500', '600'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'FreelanceShield — AI Contract Review for Freelancers',
@@ -40,7 +46,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.className} h-full flex flex-col`}>
+      <body className={`${inter.className} ${bricolage.variable} h-full flex flex-col`}>
         <PostHogProvider>
           <Navbar user={user} isAdmin={isAdmin} />
           <main className="flex-1">
