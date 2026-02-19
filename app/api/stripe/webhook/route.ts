@@ -40,7 +40,17 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (profile) {
-        const plan = subscription.status === 'active' ? 'solo' : 'free'
+        let plan = 'free'
+        if (subscription.status === 'active') {
+          const priceId = subscription.items.data[0]?.price?.id
+          if (priceId && priceId === process.env.STRIPE_AGENCY_PRICE_ID) {
+            plan = 'agency'
+          } else if (priceId && priceId === process.env.STRIPE_PRO_PRICE_ID) {
+            plan = 'pro'
+          } else {
+            plan = 'solo'
+          }
+        }
         await serviceClient
           .from('profiles')
           .update({ plan, stripe_subscription_id: subscription.id })

@@ -80,7 +80,10 @@ export async function POST(request: NextRequest) {
 
   const file = formData.get('file') as File | null
   const freelancerType = (formData.get('freelancer_type') as string) || profile.freelancer_type || 'other'
-  const usState = (formData.get('us_state') as string) || profile.us_state || 'other'
+  // State-specific legal rules are a Solo+ feature; free users get generic analysis
+  const usState = planLimits.full_clauses
+    ? ((formData.get('us_state') as string) || profile.us_state || 'other')
+    : 'other'
 
   if (!file) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 })

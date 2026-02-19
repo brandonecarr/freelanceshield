@@ -10,6 +10,7 @@ const TEMPLATES = [
     description: 'A comprehensive general-purpose service agreement for any freelance work. Balanced and freelancer-protective.',
     freelancer_type: null,
     tags: ['General', 'Services'],
+    minPlan: 'solo' as const,
   },
   {
     id: 'nda-mutual',
@@ -17,6 +18,7 @@ const TEMPLATES = [
     description: 'A mutual non-disclosure agreement that protects both parties. Includes carve-outs for publicly known information.',
     freelancer_type: null,
     tags: ['NDA', 'General'],
+    minPlan: 'solo' as const,
   },
   {
     id: 'web-development-contract',
@@ -24,6 +26,7 @@ const TEMPLATES = [
     description: 'Tailored for developers. Includes IP ownership with carve-outs for pre-existing code, milestone payments, and scope change order process.',
     freelancer_type: 'developer',
     tags: ['Developer', 'Web'],
+    minPlan: 'solo' as const,
   },
   {
     id: 'design-services-contract',
@@ -31,6 +34,7 @@ const TEMPLATES = [
     description: 'Built for designers. Limits revisions explicitly, protects unused concepts, and defines deliverable formats precisely.',
     freelancer_type: 'designer',
     tags: ['Designer', 'Creative'],
+    minPlan: 'pro' as const,
   },
   {
     id: 'video-production-agreement',
@@ -38,6 +42,7 @@ const TEMPLATES = [
     description: 'For video producers and editors. Distinguishes licensing from ownership, defines usage rights clearly.',
     freelancer_type: 'video',
     tags: ['Video', 'Creative'],
+    minPlan: 'pro' as const,
   },
 ]
 
@@ -53,7 +58,13 @@ export default async function TemplatesPage() {
     .single()
 
   const plan = profile?.plan || 'free'
-  const hasAccess = ['solo', 'pro', 'agency'].includes(plan)
+  const isSoloPlus = ['solo', 'pro', 'agency'].includes(plan)
+  const isProPlus = ['pro', 'agency'].includes(plan)
+
+  function canDownload(minPlan: 'solo' | 'pro') {
+    if (minPlan === 'pro') return isProPlus
+    return isSoloPlus
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -66,7 +77,7 @@ export default async function TemplatesPage() {
         </div>
       </div>
 
-      {!hasAccess && (
+      {!isSoloPlus && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6 flex items-start gap-3">
           <Lock className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
@@ -100,7 +111,7 @@ export default async function TemplatesPage() {
             <p className="text-xs text-gray-500 leading-relaxed flex-1 mb-4">
               {template.description}
             </p>
-            {hasAccess ? (
+            {canDownload(template.minPlan) ? (
               <a
                 href={`/api/templates/${template.id}/download`}
                 download
@@ -115,7 +126,7 @@ export default async function TemplatesPage() {
                 disabled
               >
                 <Lock className="h-3.5 w-3.5" />
-                Solo plan required
+                {template.minPlan === 'pro' ? 'Pro plan required' : 'Solo plan required'}
               </button>
             )}
           </div>

@@ -430,21 +430,30 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Verify Solo+ plan
+  // Verify plan access
   const { data: profile } = await supabase
     .from('profiles')
     .select('plan')
     .eq('id', user.id)
     .single()
 
-  const hasAccess = ['solo', 'pro', 'agency'].includes(profile?.plan || '')
-  if (!hasAccess) {
+  const plan = profile?.plan || 'free'
+  const isSoloPlus = ['solo', 'pro', 'agency'].includes(plan)
+  const isProPlus = ['pro', 'agency'].includes(plan)
+
+  if (!isSoloPlus) {
     return NextResponse.json({ error: 'Solo plan required' }, { status: 403 })
   }
 
   const template = TEMPLATES[params.id]
   if (!template) {
     return NextResponse.json({ error: 'Template not found' }, { status: 404 })
+  }
+
+  // Pro-only templates
+  const PRO_ONLY_TEMPLATES = new Set(['design-services-contract', 'video-production-agreement'])
+  if (PRO_ONLY_TEMPLATES.has(params.id) && !isProPlus) {
+    return NextResponse.json({ error: 'Pro plan required for this template' }, { status: 403 })
   }
 
   const { generateTemplatePDF } = await import('@/lib/pdf-generator')
