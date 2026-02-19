@@ -49,7 +49,7 @@ export default async function RootLayout({
       <body className={`${inter.className} ${bricolage.variable} h-full flex flex-col`}>
         <PostHogProvider>
           <Navbar user={user} isAdmin={isAdmin} />
-          <main className="flex-1">
+          <main className="flex-1 pt-[72px]">
             {children}
           </main>
           <Footer />

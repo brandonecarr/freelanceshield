@@ -23,9 +23,9 @@ export function Navbar({ user, isAdmin }: NavbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-40 px-4 sm:px-6 py-3 bg-transparent">
+    <header className="fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 py-3 bg-transparent pointer-events-none">
       {/* Floating pill */}
-      <div className="max-w-5xl mx-auto bg-[#171717] rounded-full shadow-xl">
+      <div className="max-w-5xl mx-auto bg-[#171717] rounded-full shadow-xl pointer-events-auto">
         <div className="flex h-12 items-center justify-between px-4 sm:px-6">
 
           {/* Logo */}

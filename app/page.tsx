@@ -88,7 +88,7 @@ export default function LandingPage() {
     <div className="bg-white">
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden" style={{ marginTop: '-72px' }}>
         {/* Soft gradient background */}
         <div
           aria-hidden
@@ -98,7 +98,7 @@ export default function LandingPage() {
               'radial-gradient(ellipse 70% 60% at 10% 0%, #fde8d8 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 90% 0%, #ede9fe 0%, transparent 60%)',
           }}
         />
-        <div className="relative max-w-5xl mx-auto px-6 pt-16 pb-12 text-center">
+        <div className="relative max-w-5xl mx-auto px-6 pt-[88px] pb-12 text-center">
           {/* Badge */}
           <div className="inline-block border border-gray-200 bg-white/60 backdrop-blur-sm rounded-full px-4 py-1.5 text-xs uppercase tracking-widest text-gray-500 mb-8">
             AI-Powered Contract Protection
