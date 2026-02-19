@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
   try {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-    const pdfParse = require('pdf-parse') as (b: Buffer) => Promise<{ text: string; numpages: number }>
+    const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (b: Buffer, options?: object) => Promise<{ text: string; numpages: number }>
     const pdfData = await pdfParse(buffer)
     extractedText = pdfData.text?.trim() || ''
     pageCount = pdfData.numpages || 1
